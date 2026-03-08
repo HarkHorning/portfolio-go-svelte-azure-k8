@@ -1,0 +1,50 @@
+services:
+  frontend:    # Svelte/TypeScript app on port 3000
+    build:
+      context: ../../frontend        # Path to Dockerfile
+    ports:
+      - "3000:3000"                  # host:container
+    depends_on:
+      - backend                      # Start after backend
+
+  backend:     # Go API on port 8080
+    build:
+      context: ../../backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=mysql                # Service name = hostname
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=devpassword
+      - DB_NAME=portfolio
+      - AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02x
+        NOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob-mock:10000/dev
+        storeaccount1;
+    depends_on:
+      - mysql
+      - blob-mock
+
+  mysql:       # MySQL 8.0 on port 3306
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=devpassword
+      - MYSQL_DATABASE=portfolio
+    volumes:
+      - mysql_data:/var/lib/mysql    # Persist data between restarts
+
+  blob-mock:   # Azurite (local Azure Blob emulator) on port 10000
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"                # Blob service
+      - "10001:10001"                # Queue service
+      - "10002:10002"                # Table service
+    volumes:
+      - azurite_data:/data
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+
+volumes:
+  mysql_data:
+  azurite_data:
