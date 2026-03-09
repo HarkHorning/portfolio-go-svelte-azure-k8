@@ -10,7 +10,7 @@ A scalable art portfolio and sales platform built with modern technologies and c
 | Backend | Go | Fast, simple API server |
 | Database | MySQL | Relational data (users, orders, art metadata) |
 | Image Storage | Azure Blob Storage | Art images and media files |
-| Containerization | Docker | Consistent environments |
+| Containerization | Podman | Consistent environments (Docker-compatible, rootless) |
 | Orchestration | Kubernetes (AKS) | Container orchestration, interview demo |
 | Infrastructure | Terraform | Infrastructure as Code |
 | CI/CD | GitHub Actions | Automated builds and deployments |
@@ -24,8 +24,8 @@ hark/
 ├── portfolio/
 │   ├── frontend/          # Svelte + TypeScript application
 │   ├── backend/           # Go API server
-│   ├── deployments/
-│   │   ├── docker/        # Dockerfiles and docker-compose
+│   ├── deployment/
+│   │   ├── docker/        # Dockerfiles and podman-compose
 │   │   ├── kubernetes/    # K8s manifests
 │   │   └── terraform/     # Azure infrastructure
 │   └── .github/
@@ -40,7 +40,7 @@ hark/
 
 | Environment | Infrastructure | Purpose | Cost |
 |-------------|---------------|---------|------|
-| Local Dev | Docker Compose | Daily development | Free |
+| Local Dev | Podman Compose | Daily development | Free |
 | Interview Demo | AKS + Azure services | Demonstrate DevOps skills | ~$5-15/day when running |
 
 ---
@@ -49,7 +49,7 @@ hark/
 
 ### Phase 1: Local Development Setup
 
-**Goal**: Get the app running locally with Docker Compose.
+**Goal**: Get the app running locally with Podman Compose.
 
 #### Steps:
 
@@ -68,9 +68,9 @@ hark/
 
 3. **Local development workflow**
    ```bash
-   docker-compose up -d          # Start all services
-   docker-compose logs -f        # Watch logs
-   docker-compose down           # Stop all services
+   podman-compose up -d          # Start all services
+   podman-compose logs -f        # Watch logs
+   podman-compose down           # Stop all services
    ```
 
 **Cost**: Free
@@ -86,7 +86,7 @@ hark/
 | Resource | Purpose | Estimated Cost |
 |----------|---------|----------------|
 | Resource Group | Container for all resources | Free |
-| Azure Container Registry (ACR) | Store Docker images | ~$5/month (Basic tier) |
+| Azure Container Registry (ACR) | Store container images | ~$5/month (Basic tier) |
 | Azure Blob Storage | Art images | ~$0.02/GB/month + transactions |
 | Azure Database for MySQL (Flexible) | Managed database | ~$12/month (Burstable B1ms) OR $0 if self-hosted in K8s |
 | Azure Kubernetes Service (AKS) | Container orchestration | Free control plane, pay for nodes |
@@ -186,7 +186,7 @@ on: [push, pull_request]
 jobs:
   test-frontend:    # npm test
   test-backend:     # go test ./...
-  build-images:     # Build Docker images (don't push on PR)
+  build-images:     # Build container images (don't push on PR)
 ```
 
 #### Deploy Pipeline (deploy-dev.yaml):
@@ -200,7 +200,7 @@ jobs:
       - Checkout code
       - Login to Azure (using service principal secret)
       - Login to ACR
-      - Build and push Docker images
+      - Build and push container images
       - Deploy to AKS with kubectl apply
 ```
 
@@ -294,10 +294,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "spot" {
 
 ### Local Development
 ```bash
-cd deployments/docker
-docker-compose up -d        # Start
-docker-compose down         # Stop
-docker-compose logs -f api  # View logs
+cd deployment/docker
+podman-compose up -d        # Start
+podman-compose down         # Stop
+podman-compose logs -f api  # View logs
 ```
 
 ### Azure CLI
@@ -309,7 +309,7 @@ az acr login -n harkportfolioacr            # Docker login to ACR
 
 ### Terraform
 ```bash
-cd deployments/terraform
+cd deployment/terraform
 terraform init          # First time
 terraform plan          # Preview changes
 terraform apply         # Create/update resources
@@ -328,7 +328,7 @@ kubectl delete -f kubernetes/       # Remove all manifests
 ### Interview Day Checklist
 ```bash
 # 30 minutes before interview:
-cd deployments/terraform
+cd deployment/terraform
 az aks nodepool scale -g hark-portfolio-rg -c hark-aks -n agentpool --node-count 1
 kubectl get pods -w  # Wait for pods to be Ready
 
@@ -340,10 +340,10 @@ az aks nodepool scale -g hark-portfolio-rg -c hark-aks -n agentpool --node-count
 
 ## Next Steps
 
-1. [ ] Initialize Go module and basic API structure
-2. [ ] Initialize Svelte + TypeScript project
-3. [ ] Create Dockerfiles for both services
-4. [ ] Create docker-compose.yml for local dev
+1. [x] Initialize Go module and basic API structure
+2. [x] Initialize Svelte + TypeScript project
+3. [x] Create Dockerfiles for both services
+4. [x] Create docker-compose.yml for local dev (Podman-compatible)
 5. [ ] Set up Terraform configuration
 6. [ ] Create Kubernetes manifests
 7. [ ] Set up GitHub Actions workflows
@@ -355,7 +355,8 @@ az aks nodepool scale -g hark-portfolio-rg -c hark-aks -n agentpool --node-count
 
 - [Svelte Documentation](https://svelte.dev/docs)
 - [Go Documentation](https://go.dev/doc/)
-- [Docker Compose Reference](https://docs.docker.com/compose/)
+- [Podman Documentation](https://docs.podman.io/)
+- [Podman Compose](https://github.com/containers/podman-compose)
 - [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Kubernetes Documentation](https://kubernetes.io/docs/home/)
 - [AKS Documentation](https://docs.microsoft.com/en-us/azure/aks/)
