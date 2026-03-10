@@ -81,7 +81,241 @@ hark/
 
 **Goal**: Define all Azure resources as code for reproducible deployments.
 
-#### Azure Resources Needed:
+#### What is Terraform?
+
+Terraform is an Infrastructure as Code (IaC) tool. Instead of clicking through the Azure Portal to create resources, you write configuration files that describe what you want. Benefits:
+
+- **Reproducible**: Run the same config to recreate identical infrastructure
+- **Version controlled**: Track infrastructure changes in Git
+- **Documentable**: The config files ARE the documentation
+- **Destroyable**: Tear down everything with one command (saves money!)
+
+#### Prerequisites
+
+Before starting, install these tools:
+
+1. **Terraform CLI**
+   ```bash
+   # Windows (using winget)
+   winget install HashiCorp.Terraform
+
+   # Verify installation
+   terraform --version
+   ```
+
+2. **Azure CLI**
+   ```bash
+   # Windows (using winget)
+   winget install Microsoft.AzureCLI
+
+   # Verify installation
+   az --version
+   ```
+
+3. **Azure Account**
+   - Create a free account at https://azure.microsoft.com/free/
+   - Free tier includes $200 credit for 30 days
+
+#### Step 1: Authenticate with Azure
+
+```bash
+# Login to Azure (opens browser)
+az login
+
+# Verify you're logged in and see your subscription
+az account show
+
+# If you have multiple subscriptions, set the one to use
+az account set --subscription "Your Subscription Name"
+```
+
+#### Step 2: Understand the Terraform Files
+
+Each `.tf` file has a specific purpose. Terraform reads ALL `.tf` files in a directory and combines them.
+
+```
+deployment/terraform/
+├── main.tf              # Provider config, resource group
+├── variables.tf         # Input variables (like function parameters)
+├── outputs.tf           # Output values (URLs, passwords to display after creation)
+├── acr.tf               # Azure Container Registry
+├── storage.tf           # Blob storage for art images
+├── aks.tf               # Kubernetes cluster
+├── mysql.tf             # Database (optional)
+└── terraform.tfvars     # YOUR values (gitignored, never commit!)
+```
+
+**File explanations:**
+
+| File | Purpose | Example Content |
+|------|---------|-----------------|
+| `main.tf` | Configures Azure provider, creates resource group | `provider "azurerm" { ... }` |
+| `variables.tf` | Declares variables with types and defaults | `variable "location" { default = "eastus" }` |
+| `terraform.tfvars` | YOUR actual values for variables | `location = "westus2"` |
+| `outputs.tf` | Values to display after `terraform apply` | `output "acr_url" { value = azurerm_container_registry.main.login_server }` |
+| `acr.tf` | Container registry resource definition | `resource "azurerm_container_registry" "main" { ... }` |
+
+#### Step 3: Create the Terraform Files
+
+Create the directory structure:
+```bash
+mkdir -p deployment/terraform
+cd deployment/terraform
+```
+
+**main.tf** - Provider and resource group:
+```hcl
+# Tell Terraform we're using Azure
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"    # Use version 3.x
+    }
+  }
+}
+
+# Configure the Azure provider
+provider "azurerm" {
+  features {}    # Required, even if empty
+}
+
+# Resource Group - a container for all your Azure resources
+# Like a folder that holds everything together
+resource "azurerm_resource_group" "main" {
+  name     = var.resource_group_name    # Comes from variables.tf
+  location = var.location               # Azure region (eastus, westus2, etc.)
+
+  tags = {
+    environment = var.environment
+    project     = "hark-portfolio"
+  }
+}
+```
+
+**variables.tf** - Input variables:
+```hcl
+# Variables are like function parameters
+# They make your config reusable and keep secrets out of code
+
+variable "resource_group_name" {
+  description = "Name of the Azure resource group"
+  type        = string
+  default     = "hark-portfolio-rg"
+}
+
+variable "location" {
+  description = "Azure region to deploy resources"
+  type        = string
+  default     = "eastus"    # Change to region closest to you
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+# Sensitive variables - never have defaults for these!
+variable "mysql_admin_password" {
+  description = "MySQL administrator password"
+  type        = string
+  sensitive   = true    # Won't show in logs
+}
+```
+
+**terraform.tfvars** - Your actual values (ADD TO .gitignore!):
+```hcl
+# This file contains YOUR specific values
+# NEVER commit this file to Git!
+
+resource_group_name  = "hark-portfolio-rg"
+location             = "eastus"
+environment          = "dev"
+mysql_admin_password = "YourSecurePassword123!"
+```
+
+**outputs.tf** - Values to display after creation:
+```hcl
+# Outputs display useful information after terraform apply
+
+output "resource_group_name" {
+  description = "The name of the resource group"
+  value       = azurerm_resource_group.main.name
+}
+
+output "acr_login_server" {
+  description = "The URL of the container registry"
+  value       = azurerm_container_registry.main.login_server
+}
+
+output "aks_cluster_name" {
+  description = "The name of the AKS cluster"
+  value       = azurerm_kubernetes_cluster.main.name
+}
+
+# Don't output sensitive values! Use Azure CLI to retrieve them.
+```
+
+#### Step 4: Initialize and Apply
+
+```bash
+cd deployment/terraform
+
+# 1. Initialize Terraform (downloads Azure provider, creates state file)
+#    Run this once, or after adding new providers
+terraform init
+
+# 2. Format your files (optional but recommended)
+terraform fmt
+
+# 3. Validate syntax
+terraform validate
+
+# 4. Preview what will be created (NO COST - just a dry run)
+#    Review this carefully before applying!
+terraform plan
+
+# 5. Create the infrastructure (THIS STARTS COSTING MONEY!)
+#    Type "yes" when prompted
+terraform apply
+
+# 6. When done/to save money, destroy everything
+terraform destroy
+```
+
+#### Key Terraform Commands Explained
+
+| Command | What It Does | When to Use |
+|---------|--------------|-------------|
+| `terraform init` | Downloads providers, sets up state | First time, or after adding providers |
+| `terraform fmt` | Auto-formats `.tf` files | Before committing code |
+| `terraform validate` | Checks syntax errors | Before plan/apply |
+| `terraform plan` | Shows what WILL happen (dry run) | Always before apply |
+| `terraform apply` | Creates/updates real resources | When ready to deploy |
+| `terraform destroy` | Deletes ALL resources | To stop costs |
+| `terraform state list` | Shows managed resources | Debugging |
+| `terraform output` | Shows output values | Get URLs, names, etc. |
+
+#### Understanding Terraform State
+
+Terraform keeps track of what it created in a **state file** (`terraform.tfstate`). This file:
+
+- Maps your config to real Azure resources
+- Is created locally by default
+- Should NEVER be committed to Git (contains secrets)
+- Can be stored remotely (Azure Storage) for team collaboration
+
+Add to `.gitignore`:
+```
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars    # Contains your secrets!
+```
+
+#### Azure Resources Needed
 
 | Resource | Purpose | Estimated Cost |
 |----------|---------|----------------|
@@ -92,34 +326,32 @@ hark/
 | Azure Kubernetes Service (AKS) | Container orchestration | Free control plane, pay for nodes |
 | AKS Node Pool | Worker VMs | ~$30-60/month per node (B2s spot instances) |
 
-#### Terraform Structure:
+#### Common Issues & Solutions
 
-```
-terraform/
-├── main.tf              # Provider config, resource group
-├── variables.tf         # Input variables
-├── outputs.tf           # Output values (URLs, connection strings)
-├── acr.tf               # Container registry
-├── storage.tf           # Blob storage account
-├── aks.tf               # Kubernetes cluster
-├── mysql.tf             # Database (optional, can run in K8s)
-└── terraform.tfvars     # Your specific values (gitignored)
-```
+| Problem | Solution |
+|---------|----------|
+| "Provider not found" | Run `terraform init` |
+| "Not authenticated" | Run `az login` |
+| "Resource already exists" | Resource was created outside Terraform. Import it or delete manually |
+| "Quota exceeded" | Request quota increase in Azure Portal or use smaller VM size |
+| State file locked | Another terraform process is running. Wait or delete `.terraform.lock.hcl` |
 
-#### Key Terraform Commands:
+#### Verifying Your Infrastructure
+
+After `terraform apply` succeeds:
 
 ```bash
-# First time setup
-terraform init
+# Check resource group was created
+az group show --name hark-portfolio-rg
 
-# Preview what will be created
-terraform plan
+# Check AKS cluster
+az aks list --output table
 
-# Create infrastructure (STARTS COSTING MONEY)
-terraform apply
+# Get credentials for kubectl
+az aks get-credentials --resource-group hark-portfolio-rg --name hark-aks
 
-# Destroy everything (STOPS COSTS)
-terraform destroy
+# Verify kubectl works
+kubectl get nodes
 ```
 
 ---

@@ -1,23 +1,19 @@
-package internal
+package models
 
 type ArtModel struct {
-    Id int
-    Title string
-    URL string
-    Description string
+	Id          int
+	Title       string
+	URL         string
+	Description string
+	Portrait    bool
 }
 
-func CreateArtModel(id: int, title: string, url: string, description: string) *ArtModel {
-    return &ArtModel{
-        Id: id
-        Title: title
-        URL: url
-        Description: description
-    }
-}
-
-func (m *ArtModel) EditRecord(title: string, url: string, description: string) {
-	//m.Title: title
-	//m.URL: url
-	//m.Description: description
+func CreateArtModel(id int, title string, url string, description string, portrait bool) *ArtModel {
+	return &ArtModel{
+		Id:          id,
+		Title:       title,
+		URL:         url,
+		Description: description,
+		Portrait:    portrait,
+	}
 }
