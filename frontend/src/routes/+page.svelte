@@ -4,7 +4,8 @@
 </script>
 
 <div class="art-page">
-    <h1>Welcome to Portfolio</h1>
+    <h1>I'm Hark,</h1>
+    <p>welcome to portfolio</p>
     <div>
         <ArtGrid />
     </div>

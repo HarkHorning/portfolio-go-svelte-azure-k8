@@ -3,25 +3,29 @@ package api
 import (
 	"os"
 
+	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
-func Routes() *gin.Engine {
+func Routes(db *sqlx.DB) *gin.Engine {
 	router := gin.Default()
 
 	// CORS configuration
 	// Allows frontend to make requests to this API
 	config := cors.Config{
 		AllowOrigins:     getAllowedOrigins(),
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}, // come back to this later
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}
 	router.Use(cors.New(config))
 
-	handle := NewHandler()
+	sqlResource := repo.NewRepo(db)
+
+	handle := NewHandler(*sqlResource)
 
 	router.GET("/health", handle.HealthCheck)
 

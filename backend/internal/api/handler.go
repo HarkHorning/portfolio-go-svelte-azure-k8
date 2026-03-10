@@ -4,15 +4,18 @@ import (
 	"net/http"
 
 	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/models"
+	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	// Add dependencies here (db, storage client, etc.)
+	sqlResource repo.Repo
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(sqlResource repo.Repo) *Handler {
+	return &Handler{
+		sqlResource: sqlResource,
+	}
 }
 
 func (h *Handler) HealthCheck(c *gin.Context) {
@@ -27,16 +30,16 @@ func (h *Handler) DevPrint(c *gin.Context) {
 
 func (h *Handler) DevArtModels(c *gin.Context) {
 	tiles := []*models.ArtModel{
-		models.CreateArtModel(1, "Painting 1", "/img/woman.jpg", "", true),
-		models.CreateArtModel(2, "Painting 3", "/img/boat.jpg", "", false),
-		models.CreateArtModel(3, "Painting 4", "/img/horse.jpg", "", true),
-		models.CreateArtModel(4, "Painting 5", "/img/woman.jpg", "", true),
-		models.CreateArtModel(5, "Painting 2", "/img/woman.jpg", "", true),
-		models.CreateArtModel(6, "Painting 6", "/img/woman.jpg", "", true),
-		models.CreateArtModel(7, "Painting 7", "/img/woman.jpg", "", true),
-		models.CreateArtModel(8, "Painting 8", "/img/woman.jpg", "", true),
-		models.CreateArtModel(9, "Painting 9", "/img/woman.jpg", "", true),
-		models.CreateArtModel(10, "Painting 10", "/img/boat.jpg", "", false),
+		models.CreateArtModel(1, "Painting 1", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(2, "Boat on Lake", "https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg", "", false),
+		models.CreateArtModel(3, "Horse Watercolor", "https://artportfolio.blob.core.windows.net/lowgrade/horse.jpg", "", true),
+		models.CreateArtModel(4, "Painting 5", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(6, "Painting 6", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(5, "Painting 2", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(7, "Horse Watercolor", "https://artportfolio.blob.core.windows.net/lowgrade/horse.jpg", "", true),
+		models.CreateArtModel(8, "Painting 8", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(9, "Painting 9", "https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg", "", true),
+		models.CreateArtModel(10, "Boat on Lake", "https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg", "", false),
 	}
 
 	c.JSON(http.StatusOK, tiles)

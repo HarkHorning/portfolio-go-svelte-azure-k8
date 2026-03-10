@@ -15,8 +15,8 @@
     .image { 
         width: 100%;
         height: 90%;
-        /* object-fit: cover; */
-        object-fit: contain;
-        border-radius: 8px;
+        object-fit: cover;
+        /* object-fit: contain; */
+        border-radius: 6px;
     }
 </style>
