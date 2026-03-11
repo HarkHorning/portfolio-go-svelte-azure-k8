@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
@@ -26,7 +27,8 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 func (h *Handler) GetArtTiles(c *gin.Context) {
 	tiles, err := h.sqlResource.TopTiles(12)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch art"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get art"})
+		log.Println("SERVER: Failed to get art")
 		return
 	}
 	c.JSON(http.StatusOK, tiles)

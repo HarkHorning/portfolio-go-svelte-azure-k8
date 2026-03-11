@@ -8,6 +8,7 @@ import (
 )
 
 // This file is just for development when I spin up a bunch of different things.
+// Also, I want to keep any ideas for creating the db here for when I make a more perminant solution.
 func InitSchema(db *sqlx.DB) error {
 	log.Println("Initializing database schema...")
 
@@ -64,7 +65,7 @@ func createCategoriesTable(db *sqlx.DB) error {
 	return nil
 }
 
-func createArtCategoriesTable(db *sqlx.DB) error {
+func createArtCategoriesTable(db *sqlx.DB) error { // Eventually add genre?
 	query := `
 		CREATE TABLE IF NOT EXISTS art_categories (
 			art_id INT NOT NULL,
@@ -82,12 +83,9 @@ func createArtCategoriesTable(db *sqlx.DB) error {
 	return nil
 }
 
-// SeedDevData inserts sample data for development.
-// Clears existing data first - only use in development!
-func SeedDevData(db *sqlx.DB) error {
+func SeedDevData(db *sqlx.DB) error { // For development
 	log.Println("Seeding development data...")
 
-	// Clear existing data (order matters due to foreign keys)
 	tables := []string{"art_categories", "art_tiles", "categories"}
 	for _, table := range tables {
 		_, err := db.Exec(fmt.Sprintf("DELETE FROM %s", table))
@@ -96,7 +94,6 @@ func SeedDevData(db *sqlx.DB) error {
 		}
 	}
 
-	// Reset auto-increment
 	for _, table := range []string{"art_tiles", "categories"} {
 		_, _ = db.Exec(fmt.Sprintf("ALTER TABLE %s AUTO_INCREMENT = 1", table))
 	}
@@ -122,7 +119,7 @@ func seedCategories(db *sqlx.DB) error {
 		('Oil Painting', 'oil'),
 		('Portrait', 'portrait'),
 		('Landscape', 'landscape'),
-		('Abstract', 'abstract')
+		('Acrylic', 'acrylic')
 	`
 	_, err := db.Exec(query)
 	if err != nil {
@@ -165,16 +162,16 @@ func seedArtTiles(db *sqlx.DB) error {
 func seedArtCategories(db *sqlx.DB) error {
 	query := `
 		INSERT INTO art_categories (art_id, category_id) VALUES
-		(1, 3),  -- Woman Portrait -> Portrait
-		(2, 2),  -- Boat on Lake -> Oil
-		(2, 4),  -- Boat on Lake -> Landscape
+		(1, 3),  -- Portrait -> Acrylic
+		(2, 2),  -- Landscape -> Acrylic
+		(2, 4),  -- Boat on Lake -> Acrylic
 		(3, 1),  -- Horse Watercolor -> Watercolor
 		(3, 3),  -- Horse Watercolor -> Portrait
-		(4, 2),  -- Evening Light -> Oil
-		(4, 4),  -- Evening Light -> Landscape
-		(5, 5),  -- Study in Blue -> Abstract
-		(6, 2),  -- Mountain Range -> Oil
-		(6, 4)   -- Mountain Range -> Landscape
+		(4, 2),  -- Evening Light -> Acrylic
+		(4, 4),  -- Evening Light -> Acrylic
+		(5, 5),  -- Study in Blue -> Acrylic
+		(6, 2),  -- Mountain Range -> Acrylic
+		(6, 4)   -- Mountain Range -> Acrylic
 	`
 	_, err := db.Exec(query)
 	if err != nil {

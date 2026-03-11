@@ -90,24 +90,22 @@ func DBConnect(cfg Config) (*sqlx.DB, error) {
 		return nil, fmt.Errorf("SERVER: failed to connect to database: %w", err)
 	}
 
-	// Configure connection pool
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
 	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
 
-	// Verify the connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("SERVER: failed to ping database: %w", err)
 	}
 
-	if cfg.InitSchema {
+	if cfg.InitSchema { // temporary for development
 		if err := InitSchema(db); err != nil {
-			return nil, fmt.Errorf("failed to init schema: %w", err)
+			return nil, fmt.Errorf("SERVER: Failed to init schema: %w", err)
 		}
 	}
-	if cfg.SeedData {
+	if cfg.SeedData { // temporary for development
 		if err := SeedDevData(db); err != nil {
-			return nil, fmt.Errorf("failed to seed data: %w", err)
+			return nil, fmt.Errorf("SERVER: Failed to insert data: %w", err)
 		}
 	}
 
