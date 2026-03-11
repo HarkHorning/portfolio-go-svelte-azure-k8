@@ -1,0 +1,203 @@
+package repo
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/jmoiron/sqlx"
+)
+
+// This file is just for development when I spin up a bunch of different things.
+func InitSchema(db *sqlx.DB) error {
+	log.Println("Initializing database schema...")
+
+	if err := createArtTilesTable(db); err != nil {
+		return err
+	}
+	if err := createCategoriesTable(db); err != nil {
+		return err
+	}
+	if err := createArtCategoriesTable(db); err != nil {
+		return err
+	}
+
+	log.Println("Database schema initialized successfully")
+	return nil
+}
+
+func createArtTilesTable(db *sqlx.DB) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS art_tiles (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			title VARCHAR(255) NOT NULL,
+			description TEXT,
+			portrait BOOLEAN NOT NULL DEFAULT FALSE,
+			url_low VARCHAR(512) NOT NULL,
+			url_high VARCHAR(512) NOT NULL,
+			display_order INT DEFAULT 0,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			INDEX idx_display_order (display_order)
+		)
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to create art_tiles table: %w", err)
+	}
+	log.Println("  - art_tiles table ready")
+	return nil
+}
+
+func createCategoriesTable(db *sqlx.DB) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS categories (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			name VARCHAR(100) NOT NULL UNIQUE,
+			slug VARCHAR(100) NOT NULL UNIQUE
+		)
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to create categories table: %w", err)
+	}
+	log.Println("  - categories table ready")
+	return nil
+}
+
+func createArtCategoriesTable(db *sqlx.DB) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS art_categories (
+			art_id INT NOT NULL,
+			category_id INT NOT NULL,
+			PRIMARY KEY (art_id, category_id),
+			FOREIGN KEY (art_id) REFERENCES art_tiles(id) ON DELETE CASCADE,
+			FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+		)
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to create art_categories table: %w", err)
+	}
+	log.Println("  - art_categories table ready")
+	return nil
+}
+
+// SeedDevData inserts sample data for development.
+// Clears existing data first - only use in development!
+func SeedDevData(db *sqlx.DB) error {
+	log.Println("Seeding development data...")
+
+	// Clear existing data (order matters due to foreign keys)
+	tables := []string{"art_categories", "art_tiles", "categories"}
+	for _, table := range tables {
+		_, err := db.Exec(fmt.Sprintf("DELETE FROM %s", table))
+		if err != nil {
+			return fmt.Errorf("failed to clear %s: %w", table, err)
+		}
+	}
+
+	// Reset auto-increment
+	for _, table := range []string{"art_tiles", "categories"} {
+		_, _ = db.Exec(fmt.Sprintf("ALTER TABLE %s AUTO_INCREMENT = 1", table))
+	}
+
+	if err := seedCategories(db); err != nil {
+		return err
+	}
+	if err := seedArtTiles(db); err != nil {
+		return err
+	}
+	if err := seedArtCategories(db); err != nil {
+		return err
+	}
+
+	log.Println("Development data seeded successfully")
+	return nil
+}
+
+func seedCategories(db *sqlx.DB) error {
+	query := `
+		INSERT INTO categories (name, slug) VALUES
+		('Watercolor', 'watercolor'),
+		('Oil Painting', 'oil'),
+		('Portrait', 'portrait'),
+		('Landscape', 'landscape'),
+		('Abstract', 'abstract')
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to seed categories: %w", err)
+	}
+	log.Println("  - categories seeded")
+	return nil
+}
+
+func seedArtTiles(db *sqlx.DB) error {
+	query := `
+		INSERT INTO art_tiles (title, description, portrait, url_low, url_high, display_order) VALUES
+		('Woman Portrait', 'Acrylic on canvas, 2024', TRUE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/woman.jpg', 1),
+		('Boat on Lake', 'Oil on canvas, peaceful morning scene', FALSE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 2),
+		('Horse Watercolor', 'Watercolor study of movement', TRUE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/horse.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/horse.jpg', 3),
+		('Evening Light', 'Golden hour landscape', FALSE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 4),
+		('Study in Blue', 'Abstract expressionism', TRUE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/woman.jpg', 5),
+		('Mountain Range', 'Plein air oil painting', FALSE,
+		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
+		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 6)
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to seed art_tiles: %w", err)
+	}
+	log.Println("  - art_tiles seeded")
+	return nil
+}
+
+func seedArtCategories(db *sqlx.DB) error {
+	query := `
+		INSERT INTO art_categories (art_id, category_id) VALUES
+		(1, 3),  -- Woman Portrait -> Portrait
+		(2, 2),  -- Boat on Lake -> Oil
+		(2, 4),  -- Boat on Lake -> Landscape
+		(3, 1),  -- Horse Watercolor -> Watercolor
+		(3, 3),  -- Horse Watercolor -> Portrait
+		(4, 2),  -- Evening Light -> Oil
+		(4, 4),  -- Evening Light -> Landscape
+		(5, 5),  -- Study in Blue -> Abstract
+		(6, 2),  -- Mountain Range -> Oil
+		(6, 4)   -- Mountain Range -> Landscape
+	`
+	_, err := db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to seed art_categories: %w", err)
+	}
+	log.Println("  - art_categories seeded")
+	return nil
+}
+
+// DropAllTables removes all portfolio tables. Use with caution!
+func DropAllTables(db *sqlx.DB) error {
+	log.Println("WARNING: Dropping all tables...")
+
+	// Order matters - drop dependent tables first
+	tables := []string{"art_categories", "art_tiles", "categories"}
+	for _, table := range tables {
+		_, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
+		if err != nil {
+			return fmt.Errorf("failed to drop %s: %w", table, err)
+		}
+		log.Printf("  - dropped %s", table)
+	}
+
+	log.Println("All tables dropped")
+	return nil
+}

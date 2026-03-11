@@ -1,7 +1,7 @@
 export interface ArtTileInter {
-    Id: number;
-    Title: string;
-    URL: string;
-    Description: string;
-    Portrait: boolean;
+    id: number;
+    title: string;
+    url: string;
+    description: string;
+    portrait: boolean;
 }
