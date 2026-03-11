@@ -18,6 +18,9 @@ type Config struct {
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
+
+	InitSchema bool // dev field
+	SeedData   bool // dev field
 }
 
 func DevConfig() Config {
@@ -95,6 +98,17 @@ func DBConnect(cfg Config) (*sqlx.DB, error) {
 	// Verify the connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("SERVER: failed to ping database: %w", err)
+	}
+
+	if cfg.InitSchema {
+		if err := InitSchema(db); err != nil {
+			return nil, fmt.Errorf("failed to init schema: %w", err)
+		}
+	}
+	if cfg.SeedData {
+		if err := SeedDevData(db); err != nil {
+			return nil, fmt.Errorf("failed to seed data: %w", err)
+		}
 	}
 
 	return db, nil

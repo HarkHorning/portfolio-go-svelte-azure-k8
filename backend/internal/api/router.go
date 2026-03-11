@@ -31,7 +31,7 @@ func Routes(db *sqlx.DB) *gin.Engine {
 
 	art := router.Group("/api/art")
 	{
-		art.GET("/", handle.DevArtModels)
+		art.GET("/", handle.GetArtTiles)
 	}
 
 	return router

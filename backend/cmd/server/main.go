@@ -5,11 +5,15 @@ import (
 
 	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/api"
 	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
 
-	db, err := repo.DBConnect(repo.DevConfig())
+	cfg := repo.EnvConfig()
+	cfg.InitSchema = true
+	cfg.SeedData = true
+	db, err := repo.DBConnect(cfg)
 	if err != nil {
 		log.Fatalf("SERVER: Failed to connect to database: %v", err)
 	}
