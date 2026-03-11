@@ -4,13 +4,20 @@ import (
 	"log"
 
 	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/api"
+	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
 )
 
 func main() {
-	router := api.Routes()
 
-	log.Println("Server starting on :8080")
+	db, err := repo.DBConnect(repo.DevConfig())
+	if err != nil {
+		log.Fatalf("SERVER: Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+	router := api.Routes(db)
+
+	log.Println("SERVER: Starting on :8080")
 	if err := router.Run(":8080"); err != nil {
-		log.Fatal("Failed to start server:", err)
+		log.Fatal("SERVER: Failed to start server:", err)
 	}
 }
