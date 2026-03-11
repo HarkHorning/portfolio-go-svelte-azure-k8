@@ -15,7 +15,6 @@ func NewRepo(db *sqlx.DB) *Repo {
 	return &Repo{db: db}
 }
 
-// TopTiles returns art tiles for the homepage grid (no high-res URLs)
 func (repo *Repo) TopTiles(limit int) ([]models.ArtModel, error) {
 	var artTiles []models.ArtModel
 	query := `
@@ -27,13 +26,12 @@ func (repo *Repo) TopTiles(limit int) ([]models.ArtModel, error) {
 
 	err := repo.db.Select(&artTiles, query, limit)
 	if err != nil {
-		return nil, fmt.Errorf("could not list art tiles: %w", err)
+		return nil, fmt.Errorf("SERVER: Could not list art tiles: %w", err)
 	}
 
 	return artTiles, nil
 }
 
-// ListMoreTiles returns paginated art tiles for infinite scroll (no high-res URLs)
 func (repo *Repo) ListMoreTiles(limit, offset int) ([]models.ArtModel, error) {
 	var artTiles []models.ArtModel
 	query := `
@@ -45,9 +43,8 @@ func (repo *Repo) ListMoreTiles(limit, offset int) ([]models.ArtModel, error) {
 
 	err := repo.db.Select(&artTiles, query, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("could not list more art tiles: %w", err)
+		return nil, fmt.Errorf("SERVER: Could not list more art tiles: %w", err)
 	}
 
 	return artTiles, nil
 }
-
