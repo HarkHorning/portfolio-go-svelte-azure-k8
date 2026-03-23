@@ -6,7 +6,7 @@
 
     $effect(() => {
         (async () => {
-            const res = await fetch(`http://localhost:8080/api/art/`);
+            const res = await fetch(`/api/art/`);
             tiles = await res.json();
         })();
     });
