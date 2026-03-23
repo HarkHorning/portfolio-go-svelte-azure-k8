@@ -10,11 +10,12 @@ terraform {
 
 provider "azurerm" {
   features {}
+  skip_provider_registration = true
 }
 
 # Redo variable names here later
 resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name    # Comes from variables.tf
+  name     = var.resource_group_name
   location = var.location
 
   tags = {

@@ -132,24 +132,24 @@ func seedCategories(db *sqlx.DB) error {
 func seedArtTiles(db *sqlx.DB) error {
 	query := `
 		INSERT INTO art_tiles (title, description, portrait, url_low, url_high, display_order) VALUES
-		('Woman Portrait', 'Acrylic on canvas, 2024', TRUE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/woman.jpg', 1),
+		('Woman with Flowers', 'Acrylic on canvas, 2024', TRUE,
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Woman With Flowers.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Woman With Flowers.jpeg', 1),
 		('Boat on Lake', 'Oil on canvas, peaceful morning scene', FALSE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 2),
-		('Horse Watercolor', 'Watercolor study of movement', TRUE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/horse.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/horse.jpg', 3),
-		('Evening Light', 'Golden hour landscape', FALSE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 4),
-		('Study in Blue', 'Abstract expressionism', TRUE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/woman.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/woman.jpg', 5),
-		('Mountain Range', 'Plein air oil painting', FALSE,
-		 'https://artportfolio.blob.core.windows.net/lowgrade/boat.jpg',
-		 'https://artportfolio.blob.core.windows.net/highgrade/boat.jpg', 6)
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Boat on Lake.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Boat on Lake.jpeg', 2),
+		('Horse Watercolor', 'Watercolor', TRUE,
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Horse Statue.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Horse Statue.jpeg', 3),
+		('Boat on Lake', 'Golden hour landscape', FALSE,
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Boat on Lake.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Boat on Lake.jpeg', 4),
+		('Woman with Flowers', 'Cubist Serialist something expressionism', TRUE,
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Woman With Flowers.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Woman With Flowers.jpeg', 5),
+		('Shoebill Stork Watercolor', 'Watercolor', TRUE,
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Shoebill.jpeg',
+		 'https://harkportfoliostore.blob.core.windows.net/art-images/Shoebill.jpeg', 6)
 	`
 	_, err := db.Exec(query)
 	if err != nil {
