@@ -1,19 +1,19 @@
 services:
-  frontend:    # Svelte/TypeScript app on port 3000
+  frontend:
     build:
-      context: ../../frontend        # Path to Dockerfile
+      context: ../../frontend
     ports:
-      - "3000:3000"                  # host:container
+      - "3000:3000"
     depends_on:
-      - backend                      # Start after backend
+      - backend
 
-  backend:     # Go API on port 8080
+  backend:
     build:
       context: ../../backend
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=mysql                # Service name = hostname
+      - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=devpassword
@@ -22,15 +22,15 @@ services:
       mysql:
         condition: service_healthy
 
-  mysql:       # MySQL 8.0
+  mysql:
     image: mysql:8.0
     ports:
-      - "3307:3306"                  # Host 3307 -> Container 3306 (avoids local MySQL conflict)
+      - "3307:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=devpassword
       - MYSQL_DATABASE=portfolio
     volumes:
-      - mysql_data:/var/lib/mysql    # Persist data between restarts
+      - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdevpassword"]
       interval: 5s
