@@ -1,17 +1,21 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
+	"github.com/HarkHorning/portfolio-go-svelte-azure-k8/internal/repo"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	// Add dependencies here (db, storage client, etc.)
+	sqlResource repo.Repo
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(sqlResource repo.Repo) *Handler {
+	return &Handler{
+		sqlResource: sqlResource,
+	}
 }
 
 func (h *Handler) HealthCheck(c *gin.Context) {
@@ -20,6 +24,12 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 	})
 }
 
-func (h *Handler) DevPrint(c *gin.Context) {
-	c.String(http.StatusOK, "Hello, This endpoint is for development and does nothing. Good day!")
+func (h *Handler) GetArtTiles(c *gin.Context) {
+	tiles, err := h.sqlResource.TopTiles(12)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get art"})
+		log.Println("SERVER: Failed to get art")
+		return
+	}
+	c.JSON(http.StatusOK, tiles)
 }
