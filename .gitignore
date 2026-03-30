@@ -9,6 +9,9 @@
 .env
 .env.*
 
+# Kubernetes secrets
+*-secret.yaml
+
 # IDE
 .idea/
 .vscode/

@@ -5,7 +5,7 @@
 
 <div class="art-page">
     <h1>I'm Hark,</h1>
-    <p>welcome to portfolio</p>
+    <p>welcome to my portfolio</p>
     <div>
         <ArtGrid />
     </div>

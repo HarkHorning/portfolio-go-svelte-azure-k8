@@ -26,6 +26,9 @@ spec:
             - name: DB_USER
               value: "root"
             - name: DB_PASSWORD
-              value: "devpassword"
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
             - name: DB_NAME
               value: "portfolio"
